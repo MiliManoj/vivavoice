@@ -4,6 +4,8 @@ import './App.css'
 function App() {
   const [isRecording, setIsRecording] = useState(false)
   const [audioURL, setAudioURL] = useState(null)
+  const [audioBlob, setAudioBlob] = useState(null)
+  const [uploadStatus, setUploadStatus] = useState('')
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
 
@@ -22,6 +24,7 @@ function App() {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         const url = URL.createObjectURL(blob)
         setAudioURL(url)
+        setAudioBlob(blob)
       }
 
       mediaRecorder.start()
@@ -37,6 +40,26 @@ function App() {
     setIsRecording(false)
   }
 
+  const uploadRecording = async () => {
+    if (!audioBlob) return
+    setUploadStatus('Uploading...')
+
+    const formData = new FormData()
+    formData.append('audio', audioBlob, 'recording.webm')
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await response.json()
+      setUploadStatus(`Uploaded successfully: ${data.filename}`)
+    } catch (err) {
+      console.error('Upload error:', err)
+      setUploadStatus('Upload failed. Check backend is running.')
+    }
+  }
+
   return (
     <div className="app-container">
       <h1>VivaVoice</h1>
@@ -50,6 +73,9 @@ function App() {
         <div className="playback">
           <p>Your recording:</p>
           <audio controls src={audioURL}></audio>
+          <br />
+          <button onClick={uploadRecording}>Analyze Recording</button>
+          {uploadStatus && <p>{uploadStatus}</p>}
         </div>
       )}
     </div>
