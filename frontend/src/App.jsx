@@ -48,7 +48,7 @@ function App() {
     formData.append('audio', audioBlob, 'recording.webm')
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/upload', {
+      const response = await fetch('http://127.0.0.1:5001/api/upload', {
         method: 'POST',
         body: formData,
       })
