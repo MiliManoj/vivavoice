@@ -73,6 +73,7 @@ Transcript: "${transcriptText}"`;
     // Step 3: Save everything to MongoDB
     const newRecording = new Recording({
       filename: req.file.filename,
+      question: req.body.question || '',
       transcript: transcriptText,
       feedback: feedbackText,
     });
