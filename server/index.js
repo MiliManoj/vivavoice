@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const Recording = require('./models/Recording');
+const { AssemblyAI } = require('assemblyai');
 
 const app = express();
 app.use(cors());
@@ -28,16 +29,42 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+
+
+const client = new AssemblyAI({
+  apiKey: process.env.ASSEMBLYAI_API_KEY,
+});
+
 app.post('/api/upload', upload.single('audio'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No audio file provided' });
 
   try {
-    const newRecording = new Recording({ filename: req.file.filename });
+    const filePath = path.join(uploadDir, req.file.filename);
+
+    // Send to AssemblyAI for transcription
+    const transcript = await client.transcripts.transcribe({
+      audio: filePath,
+    });
+
+    if (transcript.status === 'error') {
+      return res.status(500).json({ error: 'Transcription failed: ' + transcript.error });
+    }
+
+    // Save to MongoDB
+    const newRecording = new Recording({
+      filename: req.file.filename,
+      transcript: transcript.text,
+    });
     await newRecording.save();
-    res.json({ message: 'File uploaded successfully', filename: req.file.filename });
+
+    res.json({
+      message: 'File uploaded and transcribed successfully',
+      filename: req.file.filename,
+      transcript: transcript.text,
+    });
   } catch (err) {
-    console.error('Database save error:', err);
-    res.status(500).json({ error: 'Failed to save recording metadata' });
+    console.error('Upload/transcription error:', err);
+    res.status(500).json({ error: 'Failed to process recording' });
   }
 });
 

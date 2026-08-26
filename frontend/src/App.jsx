@@ -6,6 +6,8 @@ function App() {
   const [audioURL, setAudioURL] = useState(null)
   const [audioBlob, setAudioBlob] = useState(null)
   const [uploadStatus, setUploadStatus] = useState('')
+  const [transcript, setTranscript] = useState('')
+
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
 
@@ -25,6 +27,8 @@ function App() {
         const url = URL.createObjectURL(blob)
         setAudioURL(url)
         setAudioBlob(blob)
+        setTranscript('')
+        setUploadStatus('')
       }
 
       mediaRecorder.start()
@@ -42,7 +46,7 @@ function App() {
 
   const uploadRecording = async () => {
     if (!audioBlob) return
-    setUploadStatus('Uploading...')
+    setUploadStatus('Uploading and transcribing... this may take a few seconds')
 
     const formData = new FormData()
     formData.append('audio', audioBlob, 'recording.webm')
@@ -53,7 +57,14 @@ function App() {
         body: formData,
       })
       const data = await response.json()
+
+      if (data.error) {
+        setUploadStatus(`Error: ${data.error}`)
+        return
+      }
+
       setUploadStatus(`Uploaded successfully: ${data.filename}`)
+      setTranscript(data.transcript || 'No transcript returned')
     } catch (err) {
       console.error('Upload error:', err)
       setUploadStatus('Upload failed. Check backend is running.')
@@ -76,6 +87,13 @@ function App() {
           <br />
           <button onClick={uploadRecording}>Analyze Recording</button>
           {uploadStatus && <p>{uploadStatus}</p>}
+        </div>
+      )}
+
+      {transcript && (
+        <div className="transcript">
+          <p><strong>Transcript:</strong></p>
+          <p>{transcript}</p>
         </div>
       )}
     </div>
