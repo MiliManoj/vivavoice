@@ -53,7 +53,7 @@ function App() {
     formData.append('audio', audioBlob, 'recording.webm')
 
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/upload', {
+      const response = await fetch('https://vivavoice-backend.onrender.com/api/upload', {
         method: 'POST',
         body: formData,
       })
