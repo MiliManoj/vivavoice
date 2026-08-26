@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const recordingSchema = new mongoose.Schema({
   filename: { type: String, required: true },
   transcript: { type: String, default: '' },
+  feedback: { type: String, default: '' },
   uploadedAt: { type: Date, default: Date.now },
 });
 

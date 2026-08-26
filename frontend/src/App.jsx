@@ -7,6 +7,7 @@ function App() {
   const [audioBlob, setAudioBlob] = useState(null)
   const [uploadStatus, setUploadStatus] = useState('')
   const [transcript, setTranscript] = useState('')
+  const [feedback, setFeedback] = useState('')
 
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
@@ -65,6 +66,7 @@ function App() {
 
       setUploadStatus(`Uploaded successfully: ${data.filename}`)
       setTranscript(data.transcript || 'No transcript returned')
+      setFeedback(data.feedback || '')
     } catch (err) {
       console.error('Upload error:', err)
       setUploadStatus('Upload failed. Check backend is running.')
@@ -96,6 +98,13 @@ function App() {
           <p>{transcript}</p>
         </div>
       )}
+
+      {feedback && (
+  <div className="feedback">
+    <p><strong>AI Feedback:</strong></p>
+    <pre style={{ whiteSpace: 'pre-wrap', textAlign: 'left', maxWidth: '600px', margin: '0 auto' }}>{feedback}</pre>
+  </div>
+)}
     </div>
   )
 }
