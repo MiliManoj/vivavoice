@@ -2,6 +2,25 @@ import { useState, useRef } from 'react'
 import { questionBank } from './questions'
 import './App.css'
 
+function parseFeedback(rawText) {
+  const sections = rawText.split(/\*\*(.+?):\*\*/g).filter(Boolean)
+  const parsed = []
+  for (let i = 0; i < sections.length; i += 2) {
+    if (sections[i + 1] !== undefined) {
+      parsed.push({ title: sections[i].trim(), body: sections[i + 1].trim() })
+    }
+  }
+  return parsed.length ? parsed : [{ title: 'Feedback', body: rawText }]
+}
+
+function renderInlineBold(text) {
+  const parts = text.split(/\*\*(.+?)\*\*/g)
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+  )
+}
+
+
 function App() {
   const [selectedQuestion, setSelectedQuestion] = useState(null)
   const [isRecording, setIsRecording] = useState(false)
@@ -106,7 +125,7 @@ function App() {
     <div className="app-shell">
       <header className="app-header">
         <h1>VivaVoice</h1>
-        <p className="tagline">Your AI interview coach — practice, get feedback, improve.</p>
+        <p className="tagline">Nail your next interview before it happens.</p>
       </header>
 
       {!selectedQuestion && (
@@ -152,6 +171,11 @@ function App() {
               {isRecording ? '⏹ Stop Recording' : '🎙 Start Recording'}
             </button>
           </div>
+          {isRecording && (
+  <div className="soundwave">
+    {[...Array(5)].map((_, i) => <span key={i}></span>)}
+  </div>
+)}
 
           {audioURL && (
             <div className="playback-card">
@@ -165,18 +189,23 @@ function App() {
           )}
 
           {transcript && (
-            <div className="result-card">
-              <p className="section-label">Transcript</p>
-              <p className="transcript-text">{transcript}</p>
-            </div>
-          )}
+  <div className="transcript-card">
+    <p className="section-label">Transcript</p>
+    <p className="transcript-text">{transcript}</p>
+  </div>
+)}
 
           {feedback && (
-            <div className="result-card feedback-card">
-              <p className="section-label">AI Feedback</p>
-              <pre className="feedback-text">{feedback}</pre>
-            </div>
-          )}
+  <div className="feedback-sections">
+    <p className="section-label">AI feedback</p>
+    {parseFeedback(feedback).map((section, i) => (
+      <div key={i} className="feedback-section-card">
+        <h4>{section.title}</h4>
+        <p>{renderInlineBold(section.body)}</p>
+      </div>
+    ))}
+  </div>
+)}
         </section>
       )}
     </div>
